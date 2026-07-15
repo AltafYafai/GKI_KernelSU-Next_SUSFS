@@ -24,14 +24,14 @@ ERRORS = (urllib.error.HTTPError, urllib.error.URLError,
 
 
 def get_end_date(end: str | None) -> str:
-    """返回结束日期：如果为 None 则使用当前月份"""
+    """Returns end date: if None, returns the current month"""
     if end is not None:
         return end
     return datetime.now().strftime("%Y-%m")
 
 
 def make_date_range(start: str, end: str) -> list[str]:
-    """生成从 start 到 end 的 YYYY-MM 列表"""
+    """Generates a YYYY-MM list from start to end"""
     sy, sm = map(int, start.split("-"))
     ey, em = map(int, end.split("-"))
     dates = []
@@ -46,7 +46,7 @@ def make_date_range(start: str, end: str) -> list[str]:
 
 
 def try_fetch(url: str) -> str | None:
-    """尝试请求一个 URL，失败返回 None"""
+    """Attempts to request a URL, returns None if failed"""
     try:
         with urllib.request.urlopen(url, timeout=20) as resp:
             return base64.b64decode(resp.read()).decode("utf-8", errors="replace")
@@ -56,7 +56,7 @@ def try_fetch(url: str) -> str | None:
 
 def fetch_makefile(android_ver: str, kernel_ver: str, date: str,
                    dep_cutoff: str) -> str | None:
-    """获取日期分支 Makefile，优先尝试预期路径，失败则回退"""
+    """Fetches Makefile for a dated branch. Tries expected path first, falls back on failure"""
     branch = f"{android_ver}-{kernel_ver}-{date}"
     if dep_cutoff and date <= dep_cutoff:
         paths = [f"deprecated/{branch}", branch]
@@ -73,14 +73,14 @@ def fetch_makefile(android_ver: str, kernel_ver: str, date: str,
 
 
 def fetch_lts(android_ver: str, kernel_ver: str) -> str | None:
-    """获取 LTS 分支 Makefile"""
+    """Fetches LTS branch Makefile"""
     lts_branch = f"{android_ver}-{kernel_ver}-lts"
     url = f"{BASE_URL}/{lts_branch}/Makefile?format=TEXT"
     return try_fetch(url)
 
 
 def parse_version(makefile_text: str) -> tuple[str, str, str] | None:
-    """从 Makefile 提取 VERSION, PATCHLEVEL, SUBLEVEL"""
+    """Extracts VERSION, PATCHLEVEL, SUBLEVEL from Makefile"""
     vals = {}
     for key in ("VERSION", "PATCHLEVEL", "SUBLEVEL"):
         m = re.search(rf"^{key}\s*=\s*(\d+)", makefile_text, re.MULTILINE)
@@ -91,5 +91,5 @@ def parse_version(makefile_text: str) -> tuple[str, str, str] | None:
 
 
 def json_path(android_ver: str, kernel_ver: str) -> str:
-    """返回对应的 JSON 文件路径"""
+    """Returns the corresponding JSON file path"""
     return os.path.join(DATA_DIR, android_ver, f"{kernel_ver}.json")
