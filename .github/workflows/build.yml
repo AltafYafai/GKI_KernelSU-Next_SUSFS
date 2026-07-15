@@ -1274,12 +1274,12 @@ jobs:
       - name: 设置自定义构建时间
         shell: bash
         run: |
-          # 读取输入：输入 N/n 或留空时，使用当前 UTC 时间
+          # 读取输入：输入 N/n 或留空时，使用当前 IST (Asia/Kolkata) 时间
           INPUT_TIME="${{ inputs.build_time }}"
           if [[ -n "$INPUT_TIME" && "$INPUT_TIME" != "N" && "$INPUT_TIME" != "n" ]]; then
             DATESTR="$INPUT_TIME"
           else
-            DATESTR="$(TZ='UTC' date +'%a %b %d %T %Z %Y')"
+            DATESTR="$(TZ='Asia/Kolkata' date +'%a %b %d %T %Z %Y')"
           fi
 
           # 导出给后续编译流程
