@@ -1,6 +1,6 @@
-name: 内核构建 - Android 12 (5.10)
+name: Kernel Build - Android 12 (5.10)
 
-# 适配 Node.js 24
+# Adapt to Node.js 24
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -11,48 +11,48 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      # KernelSU 变体固定为 ReSukiSU
+      # KernelSU Variant fixed to ReSukiSU
       kernelsu_branch:
-        description: "KSU 分支 (main/builtin/自定义commit hash，留空使用默认)"
+        description: "KSU Branch (main/builtin/custom commit hash, leave empty for default)"
         required: false
         type: string
         default: ""
       version:
-        description: "自定义版本名 (可选)"
+        description: "Custom Version Name (Optional)"
         required: false
         type: string
       build_time:
-        description: "自定义构建时间 (可选，N或留空=当前UTC)"
+        description: "Custom Build Time (Optional, N or empty = current time)"
         required: false
         type: string
         default: "Sun Dec 01 08:10:00 UTC 2024"
       use_zram:
-        description: "启用 ZRAM 增强算法"
+        description: "Enable ZRAM Enhancement Algorithm"
         required: true
         type: boolean
         default: false
       use_bbg:
-        description: "启用 BBG 防格机"
+        description: "Enable BBG Brick Protection"
         required: true
         type: boolean
         default: false
       use_rekernel:
-        description: "启用 Re-Kernel 驱动"
+        description: "Enable Re-Kernel Driver"
         required: false
         type: boolean
         default: false
       cve_2026_43499_patch:
-        description: "应用 CVE-2026-43499 rtmutex 修复链"
+        description: "Apply CVE-2026-43499 rtmutex patch chain"
         required: false
         type: boolean
         default: true
       cancel_susfs:
-        description: "禁用 SUSFS"
+        description: "Disable SUSFS"
         required: true
         type: boolean
         default: false
       droidspaces:
-        description: "Droidspaces 容器支持"
+        description: "Droidspaces Container Support"
         required: false
         type: choice
         options:
@@ -62,13 +62,13 @@ on:
           - "345"
         default: "off"
       droidspaces_ntsync:
-        description: "启用 Droidspaces 容器 NTSync 支持（需启用 Droidspaces）"
+        description: "Enable Droidspaces Container NTSync Support (requires Droidspaces)"
         required: false
         type: boolean
         default: false
   workflow_call:
     inputs:
-      # KernelSU 变体固定为 ReSukiSU
+      # KernelSU Variant fixed to ReSukiSU
       kernelsu_branch:
         required: true
         type: string
@@ -105,7 +105,7 @@ on:
         type: boolean
         default: false
       called_from_main:
-        description: "是否从 main.yml 调用（内部使用）"
+        description: "Whether called from main.yml (Internal Use)"
         required: false
         type: boolean
         default: false

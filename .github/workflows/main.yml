@@ -1,20 +1,20 @@
 # ========================================
-# GKI 内核构建主入口
+# GKI Kernel Build Main Entry
 # ========================================
-# 此工作流是项目的统一入口点，用于：
-# 1. 构建所有版本的 GKI 内核
-# 2. 获取最新的 KSU 管理器
-# 3. 收集补丁冲突文件用于调试
-# 4. 创建 GitHub Release (可选)
+# This workflow is the unified entry point for the project, used to:
+# 1. Build selected versions of the GKI Kernel
+# 2. Get the latest KSU Manager
+# 3. Collect patch conflict files for debugging
+# 4. Create a GitHub Release (optional)
 # ========================================
 
-name: 构建内核
+name: Build Kernel
 
-# 适配 Node.js 24
+# Adapt to Node.js 24
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-# 并发控制：同一分支只运行一个实例，新运行会取消旧的
+# Concurrency control: only run one instance per branch, cancel older runs
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -26,9 +26,9 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      # ==================== 发布配置 ====================
+      # ==================== Release Config ====================
       release_type:
-        description: "发布类型"
+        description: "Release Type"
         type: choice
         options:
           - Actions
@@ -36,27 +36,27 @@ on:
           - Release
         default: Actions
 
-      # ==================== KernelSU 配置 ====================
-      # KernelSU 变体固定为 ReSukiSU
+      # ==================== KernelSU Config ====================
+      # KernelSU variant fixed to ReSukiSU
       kernelsu_branch:
-        description: "ReSukiSU branch (main/dev/自定义，留空使用main)"
+        description: "ReSukiSU branch (main/dev/custom, leave empty for main)"
         type: string
         default: "main"
         required: false
 
-      # ==================== 可选配置 ====================
+      # ==================== Optional Config ====================
       version:
-        description: "自定义版本名 (可选)"
+        description: "Custom Version Name (Optional)"
         type: string
         default: ""
         required: false
       build_time:
-        description: "自定义构建时间 (可选，N或留空=当前UTC)"
+        description: "Custom Build Time (Optional, N or empty = current time)"
         type: string
         default: "Sun Dec 01 08:10:00 UTC 2024"
         required: false
       droidspaces:
-        description: "Droidspaces 容器支持 (5.10~6.6: 槽位补丁, 6.12: 开/关)"
+        description: "Droidspaces Container Support (5.10~6.6: Slot patch, 6.12: On/Off)"
         type: choice
         options:
           - "off"
@@ -65,33 +65,33 @@ on:
           - "345"
         default: "off"
       droidspaces_ntsync:
-        description: "启用 Droidspaces 容器 NTSync 支持（需启用 Droidspaces）"
+        description: "Enable Droidspaces Container NTSync Support (requires Droidspaces)"
         type: boolean
         default: false
 
-      # ==================== 功能开关 ====================
+      # ==================== Feature Switches ====================
       use_zram:
-        description: "启用 ZRAM 增强算法"
+        description: "Enable ZRAM Enhancement Algorithm"
         type: boolean
         default: false
       use_bbg:
-        description: "启用 BBG 防格机"
+        description: "Enable BBG Brick Protection"
         type: boolean
         default: false
       use_rekernel:
-        description: "启用 Re-Kernel 驱动"
+        description: "Enable Re-Kernel Driver"
         type: boolean
         default: false
       cve_2026_43499_patch:
-        description: "应用 CVE-2026-43499 rtmutex 修复链"
+        description: "Apply CVE-2026-43499 rtmutex patch chain"
         type: boolean
         default: true
       cancel_susfs:
-        description: "禁用 SUSFS"
+        description: "Disable SUSFS"
         type: boolean
         default: false
 
-      # ==================== 构建版本选择 ====================
+      # ==================== Build Version Selection ====================
       build_a12_5_10:
         description: "Android 12 - 5.10"
         type: boolean
@@ -113,18 +113,18 @@ on:
         type: boolean
         default: false
       build_all:
-        description: "构建全部版本"
+        description: "Build All Versions"
         type: boolean
         default: true
 
-      # ==================== Bot-Push 选项 ====================
+      # ==================== Bot-Push Options ====================
       commit:
-        description: "Commit (sha 或描述)"
+        description: "Commit (sha or description)"
         type: string
         default: ""
         required: false
       change_log:
-        description: "Change Log (可选，支持多行)"
+        description: "Change Log (Optional, supports multiline)"
         type: string
         default: ""
         required: false
