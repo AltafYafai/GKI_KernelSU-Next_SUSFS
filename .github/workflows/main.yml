@@ -51,9 +51,9 @@ on:
         default: ""
         required: false
       build_time:
-        description: "Custom Build Time (Optional, N or empty = current time)"
+        description: "Custom Build Time (Optional, leave empty for current time)"
         type: string
-        default: "Sun Dec 01 08:10:00 UTC 2024"
+        default: ""
         required: false
       droidspaces:
         description: "Droidspaces Container Support (5.10~6.6: Slot patch, 6.12: On/Off)"
