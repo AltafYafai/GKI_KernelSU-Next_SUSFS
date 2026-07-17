@@ -141,7 +141,7 @@ jobs:
       droidspaces: ${{ inputs.droidspaces || 'off' }}
       droidspaces_ntsync: ${{ inputs.droidspaces_ntsync || false }}
 
-  # 仅在直接触发时运行，从 main.yml 调用时跳过
+  # Only run when triggered directly, skipped when called from main.yml
   get-ksu-manager:
     if: ${{ !inputs.called_from_main }}
     uses: ./.github/workflows/get-manager.yml

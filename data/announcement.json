@@ -13,14 +13,14 @@
         "Details: [GitHub Repository](https://github.com/zzh20188/GKI_KernelSU_SUSFS)"
       ],
       "content_zh_md": [
-        "## GKI 内核版本追踪器",
+        "## GKI Kernel Version Tracker",
         "",
-        "页面已上线，可在同一处查看所有维护分支。",
+        "Dashboard is now live. You can view all maintained branches in one place.",
         "",
-        "- 支持 Android 12/13/14/15",
-        "- 每周自动增量更新",
+        "- Supports Android 12/13/14/15",
+        "- Automated weekly incremental update",
         "",
-        "详情：[GitHub 仓库](https://github.com/zzh20188/GKI_KernelSU_SUSFS)"
+        "Details: [GitHub Repository](https://github.com/zzh20188/GKI_KernelSU_SUSFS)"
       ]
     }
   ]

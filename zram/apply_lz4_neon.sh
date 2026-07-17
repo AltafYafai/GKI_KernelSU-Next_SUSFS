@@ -1,10 +1,10 @@
 #!/bin/bash
 # ================================================================
 # apply_lz4_neon.sh
-# 为 LZ4 解压缩调用添加 ARM64 NEON 加速条件编译
-# 替代原来 4 个版本特定的 patch 文件，使用正则匹配而非固定行号
+# Add ARM64 NEON acceleration conditional compilation for LZ4 decompression calls
+# Replaces the original 4 version-specific patch files, using regex matching instead of fixed line numbers
 #
-# 用法: 在内核源码根目录（common/）执行
+# Usage: Execute in the kernel source root directory (common/)
 #   bash /path/to/apply_lz4_neon.sh
 # ================================================================
 set -euo pipefail
@@ -13,19 +13,19 @@ PATCHED=0
 SKIPPED=0
 FAILED=0
 
-# 检查是否已修补
+# Check if already patched
 already_patched() {
   grep -q "LZ4_arm64_decompress_safe" "$1" 2>/dev/null
 }
 
-# ---- 1. crypto/lz4.c 和 crypto/lz4hc.c ----
-# 模式一致：int out_len = LZ4_decompress_safe(src, dst, slen, *dlen);
+# ---- 1. crypto/lz4.c and crypto/lz4hc.c ----
+# Pattern matches: int out_len = LZ4_decompress_safe(src, dst, slen, *dlen);
 for file in crypto/lz4.c crypto/lz4hc.c; do
   if [ ! -f "$file" ]; then
-    echo "跳过（不存在）: $file"; ((SKIPPED++)) || true; continue
+    echo "Skipped (not exist): $file"; ((SKIPPED++)) || true; continue
   fi
   if already_patched "$file"; then
-    echo "跳过（已修补）: $file"; ((SKIPPED++)) || true; continue
+    echo "Skipped (already patched): $file"; ((SKIPPED++)) || true; continue
   fi
 
   perl -i -pe '
@@ -40,19 +40,19 @@ for file in crypto/lz4.c crypto/lz4hc.c; do
   ' "$file"
 
   if already_patched "$file"; then
-    echo "已修补: $file"; ((PATCHED++)) || true
+    echo "Patched: $file"; ((PATCHED++)) || true
   else
-    echo "::error::修补失败: $file"; ((FAILED++)) || true
+    echo "::error::Patch failed: $file"; ((FAILED++)) || true
   fi
 done
 
 # ---- 2. fs/f2fs/compress.c ----
-# 将 LZ4_decompress_safe(dic->cbuf->cdata, ...) 替换为条件编译版本
+# Replace LZ4_decompress_safe(dic->cbuf->cdata, ...) with conditional compilation version
 file="fs/f2fs/compress.c"
 if [ ! -f "$file" ]; then
-  echo "跳过（不存在）: $file"; ((SKIPPED++)) || true
+  echo "Skipped (not exist): $file"; ((SKIPPED++)) || true
 elif already_patched "$file"; then
-  echo "跳过（已修补）: $file"; ((SKIPPED++)) || true
+  echo "Skipped (already patched): $file"; ((SKIPPED++)) || true
 else
   perl -i -0777 -pe '
     s{(\t)ret = LZ4_decompress_safe\(dic->cbuf->cdata, dic->rbuf,\s*\n\s*dic->clen, dic->rlen\);}
@@ -60,18 +60,18 @@ else
   ' "$file"
 
   if already_patched "$file"; then
-    echo "已修补: $file"; ((PATCHED++)) || true
+    echo "Patched: $file"; ((PATCHED++)) || true
   else
-    echo "::error::修补失败: $file"; ((FAILED++)) || true
+    echo "::error::Patch failed: $file"; ((FAILED++)) || true
   fi
 fi
 
-# ---- 3. fs/incfs/data_mgmt.c（部分内核版本才有） ----
+# ---- 3. fs/incfs/data_mgmt.c (only available in some kernel versions) ----
 file="fs/incfs/data_mgmt.c"
 if [ ! -f "$file" ]; then
-  echo "跳过（不存在）: $file"; ((SKIPPED++)) || true
+  echo "Skipped (not exist): $file"; ((SKIPPED++)) || true
 elif already_patched "$file"; then
-  echo "跳过（已修补）: $file"; ((SKIPPED++)) || true
+  echo "Skipped (already patched): $file"; ((SKIPPED++)) || true
 else
   perl -i -0777 -pe '
     s{(\t+)result = LZ4_decompress_safe\(src\.data, dst\.data, src\.len,\s*\n\s*dst\.len\);}
@@ -79,14 +79,14 @@ else
   ' "$file"
 
   if already_patched "$file"; then
-    echo "已修补: $file"; ((PATCHED++)) || true
+    echo "Patched: $file"; ((PATCHED++)) || true
   else
-    echo "::error::修补失败: $file"; ((FAILED++)) || true
+    echo "::error::Patch failed: $file"; ((FAILED++)) || true
   fi
 fi
 
 echo ""
-echo "=== LZ4 NEON 补丁完成: ${PATCHED} 成功, ${SKIPPED} 跳过, ${FAILED} 失败 ==="
+echo "=== LZ4 NEON Patch Complete: ${PATCHED} Succeeded, ${SKIPPED} Skipped, ${FAILED} Failed ==="
 
 if [ "$FAILED" -gt 0 ]; then
   exit 1

@@ -1,12 +1,12 @@
 name: Update Data & Deploy Pages
 
-# 适配 Node.js 24
+# Adapting to Node.js 24
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
   schedule:
-    - cron: '0 8 * * 1'  # 每周一 UTC 8:00
+    - cron: '0 8 * * 1' # Every Monday at 8:00 UTC
   workflow_dispatch:
   push:
     branches: [main]
@@ -79,7 +79,7 @@ jobs:
       - name: Copy data to web directory
         run: cp -r data/ web/data/
 
-      # 构建前端资源（webpack 打包 JS/SCSS → dist/）
+      # Build front-end resources (webpack packages JS/SCSS → dist/)
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
