@@ -37,11 +37,11 @@ on:
         default: Actions
 
       # ==================== KernelSU Config ====================
-      # KernelSU variant fixed to ReSukiSU
+      # KernelSU variant fixed to KernelSU-Next
       kernelsu_branch:
-        description: "ReSukiSU branch (main/dev/custom, leave empty for main)"
+        description: "KernelSU-Next branch (next/dev/custom, leave empty for default branch next/next-susfs)"
         type: string
-        default: "main"
+        default: ""
         required: false
 
       # ==================== Optional Config ====================
@@ -193,7 +193,7 @@ jobs:
   # 当 release_type 不是 Actions 时，创建 GitHub Release
   # 仅限原仓库运行，fork 仓库跳过此步骤
   release:
-    if: ${{ always() && !cancelled() && inputs.release_type != 'Actions' && (github.repository == 'ReSukiSU-GKI/GKI_KernelSU_SUSFS' || github.repository == 'altafyafai/Resukisu_GKI_SUSFS') }}
+    if: ${{ always() && !cancelled() && inputs.release_type != 'Actions' && (github.repository == 'ReSukiSU-GKI/GKI_KernelSU_SUSFS' || github.repository == 'altafyafai/Resukisu_GKI_SUSFS' || github.repository == 'altafyafai/GKI_KernelSU_SUSFS') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -213,7 +213,7 @@ jobs:
       # 预计算各种显示名称，简化后续引用
       - name: 设置显示名称
         run: |
-          KSU_NAME="ReSukiSU"
+          KSU_NAME="KernelSU-Next"
           echo "KSU_NAME=$KSU_NAME" >> $GITHUB_ENV
 
           KSU_VER="${{ needs.get-manager.outputs.ksuVer }}"
@@ -263,8 +263,8 @@ jobs:
 
       - name: 获取 KernelSU 提交信息
         run: |
-          REPO_URL="https://github.com/ReSukiSU/ReSukiSU.git"
-          REPO_URL2="ReSukiSU/ReSukiSU"
+          REPO_URL="https://github.com/KernelSU-Next/KernelSU-Next.git"
+          REPO_URL2="KernelSU-Next/KernelSU-Next"
 
           # 如果用户输入了自定义分支/commit，优先使用
           if [ -n "${{ inputs.kernelsu_branch }}" ]; then
@@ -280,10 +280,18 @@ jobs:
               KSU_URL="https://github.com/$REPO_URL2/commit/$COMMIT_HASH"
             fi
           else
-            # 稳定版：获取最新 tag
-            TAG=$(git ls-remote --tags --sort=-v:refname $REPO_URL | grep -o 'refs/tags/.*' | cut -d'/' -f3 | head -n1)
-            KSU_REF=$TAG
-            KSU_URL="https://github.com/$REPO_URL2/releases/tag/$TAG"
+            # 默认：获取 next 或 next-susfs 的最新 commit
+            # 优先选择 next-susfs (如果启用 susfs)
+            if [ "${{ inputs.cancel_susfs }}" == "true" ]; then
+              BRANCH="next"
+            else
+              BRANCH="next-susfs"
+              REPO_URL="https://github.com/pershoot/KernelSU-Next.git"
+              REPO_URL2="pershoot/KernelSU-Next"
+            fi
+            COMMIT_HASH=$(git ls-remote $REPO_URL refs/heads/$BRANCH | awk '{ print $1 }')
+            KSU_REF=$COMMIT_HASH
+            KSU_URL="https://github.com/$REPO_URL2/commit/$COMMIT_HASH"
           fi
 
           echo "KSU_REF=$KSU_REF" >> $GITHUB_ENV
@@ -383,7 +391,7 @@ jobs:
           <details>
           <summary>🔗 提交信息 / Commit Info</summary>
 
-          **KernelSU (ReSukiSU)**: [${{ env.KSU_REF }}](${{ env.KSU_URL }})
+          **KernelSU-Next**: [${{ env.KSU_REF }}](${{ env.KSU_URL }})
 
           **SUSFS4KSU**:
           - gki-android12-5.10: [${{ env.COMMIT_HASH_gki_android12_5_10 }}](${{ env.COMMIT_URL_gki_android12_5_10 }})

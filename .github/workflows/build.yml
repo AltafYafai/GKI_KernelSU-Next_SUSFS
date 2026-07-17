@@ -419,7 +419,7 @@ jobs:
           echo "obj-y += hmbird_patch.o" >> Makefile
 
       # ==================== 确定 KernelSU 分支 ====================
-      # ReSukiSU 支持自定义分支或 commit hash
+      # ReSukiSU / KernelSU-Next 支持自定义分支或 commit hash
       - name: 确定 KernelSU 分支
         id: ksu-branch
         run: |
@@ -430,20 +430,42 @@ jobs:
             BRANCH="-s $branch_input"
             echo "使用自定义分支/提交: $branch_input"
           else
-            # ReSukiSU 默认使用 main 分支
-            BRANCH="-s main"
+            if [ "${{ inputs.ksu_variant }}" == "Next" ]; then
+              if [ "${{ inputs.enable_susfs }}" == "true" ]; then
+                BRANCH="-s next-susfs"
+              else
+                BRANCH="-s next"
+              fi
+            else
+              BRANCH="-s main"
+            fi
           fi
 
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
           echo "KSU 分支: $BRANCH"
 
       # ==================== 添加 KernelSU ====================
-      # 添加 ReSukiSU
       - name: 添加 KernelSU
         working-directory: ${{ env.KERNEL_ROOT }}
         run: |
-          echo "添加 ReSukiSU..."
-          curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash $BRANCH
+          case "${{ inputs.ksu_variant }}" in
+            "Official")
+              echo "添加 Official KernelSU..."
+              curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash $BRANCH
+              ;;
+            "Next")
+              echo "添加 KernelSU-Next..."
+              if [[ "$BRANCH" == *next-susfs* ]]; then
+                curl -LSs "https://raw.githubusercontent.com/pershoot/KernelSU-Next/refs/heads/next-susfs/kernel/setup.sh" | bash $BRANCH
+              else
+                curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash $BRANCH
+              fi
+              ;;
+            *)
+              echo "添加 ReSukiSU..."
+              curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash $BRANCH
+              ;;
+          esac
 
           if [ -d "KernelSU/.git" ]; then
             KSU_LATEST_COMMIT_DATE=$(git -C KernelSU log -1 --date=format:'%Y-%m-%d %H:%M:%S %z' --format='%cd')
@@ -1169,7 +1191,7 @@ jobs:
           if [[ ! "$CURRENT_SUB" =~ ^[0-9]+$ ]]; then
             CURRENT_SUB=99999
           fi
-          if [[ "${{ inputs.ksu_variant }}" == "ReSukiSU" && "${{ inputs.android_version }}" == "android13" && "${{ inputs.kernel_version }}" == "5.15" && "$CURRENT_SUB" -ge 74 && "$CURRENT_SUB" -le 137 ]]; then
+          if [[ ("${{ inputs.ksu_variant }}" == "ReSukiSU" || "${{ inputs.ksu_variant }}" == "Next") && "${{ inputs.android_version }}" == "android13" && "${{ inputs.kernel_version }}" == "5.15" && "$CURRENT_SUB" -ge 74 && "$CURRENT_SUB" -le 137 ]]; then
             {
               echo "CONFIG_KALLSYMS=y"
               echo "CONFIG_KALLSYMS_ALL=y"

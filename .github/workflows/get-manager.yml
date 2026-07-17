@@ -65,8 +65,8 @@ jobs:
       - name: 获取 KSU & SUSFS 版本
         id: get_version
         run: |
-          echo "This is the ReSukiSU variant"
-          git clone https://github.com/ReSukiSU/ReSukiSU.git KernelSU
+          echo "This is the KernelSU-Next variant"
+          git clone https://github.com/KernelSU-Next/KernelSU-Next.git KernelSU
 
           cd KernelSU
 
@@ -89,9 +89,9 @@ jobs:
         id: add_KSU
         continue-on-error: true
         run: |
-          echo "ReSukiSU..."
-          REPO="ReSukiSU/ReSukiSU"
-          KSUM="Manager"
+          echo "KernelSU-Next..."
+          REPO="KernelSU-Next/KernelSU-Next"
+          KSUM="manager"
           FILENAME="build-manager.yml"
           
           # 初始化
@@ -117,14 +117,14 @@ jobs:
             ARTIFACTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               "https://api.github.com/repos/$REPO/actions/runs/$BUILD_ID/artifacts")
 
-            result=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name | contains("'"$KSUM"'")) | .name')
+            result=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name | ascii_downcase | contains("'"$KSUM"'")) | .name')
 
             if [ -z "$result" ]; then
               echo "没有找到包含 '$KSUM' 的项"
               NUMBER=$((NUMBER + 1))
             else
               echo "$result"
-              DOWNLOAD_LIST=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name | contains("'"$KSUM"'")) | "\(.name)\t\(.archive_download_url)"')
+              DOWNLOAD_LIST=$(echo "$ARTIFACTS" | jq -r '.artifacts[] | select(.name | ascii_downcase | contains("'"$KSUM"'")) | "\(.name)\t\(.archive_download_url)"')
               break
             fi
           done
@@ -137,7 +137,7 @@ jobs:
           # 下载并解压所有 Manager 产物
           echo "$DOWNLOAD_LIST" | while IFS=$'\t' read -r NAME URL; do
             SAFE_NAME=$(echo "$NAME" | tr '/ ' '__')
-            ZIP_NAME="ReSukiSU-${SAFE_NAME}(${{ env.KSU_VERSION }}).zip"
+            ZIP_NAME="KernelSU-Next-${SAFE_NAME}(${{ env.KSU_VERSION }}).zip"
             echo "下载 $NAME -> $ZIP_NAME"
             curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o "$ZIP_NAME" "$URL"
             mkdir -p "manager-artifacts/$SAFE_NAME"
@@ -193,7 +193,7 @@ jobs:
         if: steps.add_KSU.outcome == 'success'
         uses: actions/upload-artifact@v6
         with:
-          name: ReSukiSU-Manager(${{ env.KSU_VERSION }})
+          name: KernelSU-Next-Manager(${{ env.KSU_VERSION }})
           path: |
             **/*.apk
 
