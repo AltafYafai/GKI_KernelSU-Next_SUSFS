@@ -23,9 +23,18 @@ jobs:
       os_patch_level: "2026-07"
       ksu_variant: "Next"
       ksu_branch: ${{ inputs.kernelsu_branch || '' }}
+      version: ""
+      revision: "r1"
+      build_time: "Sun Dec 01 08:10:00 UTC 2024"
       use_zram: true
       use_bbg: true
-      enable_susfs: true
+      use_rekernel: false
       cve_2026_43499_patch: true
+      enable_susfs: true
+      supp_op: false
       droidspaces: "off"
       droidspaces_ntsync: false
+
+  get-ksu-manager:
+    uses: ./.github/workflows/get-manager.yml
+    secrets: inherit
