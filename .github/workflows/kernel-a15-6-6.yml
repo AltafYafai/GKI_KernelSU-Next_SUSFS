@@ -1,0 +1,148 @@
+name: Kernel Build - Android 15 (6.6)
+
+# Adapt to Node.js 24
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+  actions: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      # KernelSU Variant fixed to Next
+      kernelsu_branch:
+        description: "KSU Branch (next/commit hash, leave empty for latest tag)"
+        required: false
+        type: string
+        default: ""
+      version:
+        description: "Custom Version Name (Optional)"
+        required: false
+        type: string
+      build_time:
+        description: "Custom Build Time (Optional, leave empty for current time)"
+        required: false
+        type: string
+        default: ""
+      use_zram:
+        description: "Enable ZRAM Enhancement Algorithm"
+        required: true
+        type: boolean
+        default: false
+      use_bbg:
+        description: "Enable BBG Brick Protection"
+        required: true
+        type: boolean
+        default: false
+      use_rekernel:
+        description: "Enable Re-Kernel Driver"
+        required: false
+        type: boolean
+        default: false
+      cve_2026_43499_patch:
+        description: "Apply CVE-2026-43499 rtmutex patch chain"
+        required: false
+        type: boolean
+        default: true
+      cancel_susfs:
+        description: "Disable SUSFS"
+        required: true
+        type: boolean
+        default: false
+      droidspaces:
+        description: "Droidspaces Container Support"
+        required: false
+        type: choice
+        options:
+          - "off"
+          - "678"
+          - "123"
+          - "345"
+        default: "off"
+      droidspaces_ntsync:
+        description: "Enable Droidspaces Container NTSync Support (requires Droidspaces)"
+        required: false
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      # KernelSU Variant fixed to ReSukiSU
+      kernelsu_branch:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+      build_time:
+        required: false
+        type: string
+        default: ""
+      use_zram:
+        required: true
+        type: boolean
+      use_bbg:
+        required: true
+        type: boolean
+      use_rekernel:
+        required: false
+        type: boolean
+        default: false
+      cve_2026_43499_patch:
+        required: false
+        type: boolean
+        default: true
+      cancel_susfs:
+        required: false
+        type: boolean
+      droidspaces:
+        required: false
+        type: string
+        default: "off"
+      droidspaces_ntsync:
+        required: false
+        type: boolean
+        default: false
+      called_from_main:
+        description: "Whether called from main.yml (Internal Use)"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-kernel:
+    name: "6.6.180-${{ matrix.os_patch_level }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - sub_level: "180"
+            os_patch_level: "2026-07"
+            revision: "r1"
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      android_version: "android15"
+      kernel_version: "6.6"
+      sub_level: ${{ matrix.sub_level }}
+      os_patch_level: ${{ matrix.os_patch_level }}
+      revision: ${{ matrix.revision }}
+      ksu_variant: "Next"
+      ksu_branch: ${{ inputs.kernelsu_branch }}
+      version: ${{ inputs.version || '' }}
+      build_time: ${{ inputs.build_time || '' }}
+      use_zram: ${{ inputs.use_zram }}
+      use_bbg: ${{ inputs.use_bbg }}
+      use_rekernel: ${{ inputs.use_rekernel || false }}
+      cve_2026_43499_patch: ${{ inputs.cve_2026_43499_patch }}
+      supp_op: false
+      enable_susfs: ${{ !inputs.cancel_susfs }}
+      droidspaces: ${{ inputs.droidspaces || 'off' }}
+      droidspaces_ntsync: ${{ inputs.droidspaces_ntsync || false }}
+
+  # Only run when triggered directly, skipped when called from main.yml
+  get-ksu-manager:
+    if: ${{ !inputs.called_from_main }}
+    uses: ./.github/workflows/get-manager.yml
+    secrets: inherit
