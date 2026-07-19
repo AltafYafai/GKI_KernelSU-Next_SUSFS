@@ -475,6 +475,16 @@ jobs:
             echo "KSU_LATEST_COMMIT_DATE=Unknown" >> $GITHUB_ENV
           fi
 
+      # ==================== Fix core_hook.c for SUSFS v2.2.0 API ====================
+      # SUSFS v2.2.0 changed function signatures from typed pointers to void __user **,
+      # removed DATA_ADB_* auto-detection and deprecated several ioctl commands.
+      # KernelSU-Next's next-susfs branch has not been updated to match.
+      - name: Fix core_hook.c for SUSFS v2.2.0 API
+        working-directory: ${{ env.KERNEL_ROOT }}
+        run: |
+          cp "$GITHUB_WORKSPACE/patches/core_hook_fixed.c" "./common/drivers/kernelsu/core_hook.c"
+          echo "Applied core_hook.c fix for SUSFS v2.2.0 API"
+
       # ==================== Apply SUSFS patch ====================
       # SUSFS (Super User SUS FileSystem) is used to hide root traces
       - name: Apply SUSFS patch
